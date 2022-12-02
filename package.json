@@ -1,0 +1,22 @@
+{
+  "name": "advent-of-code-22",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cschleiden/advent-of-code-22.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cschleiden/advent-of-code-22/issues"
+  },
+  "homepage": "https://github.com/cschleiden/advent-of-code-22#readme",
+  "dependencies": {
+    "ts-node": "^10.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.10"
+  }
+}
