@@ -12,21 +12,33 @@ const shared: string[] = [];
 
 let x = 0;
 
+let g = 0;
+let i = 0;
+
+let gb = "";
+let gs = new Set<string>();
+
 for (const line of lines) {
-  const rs = {
-    first: line.substring(0, line.length / 2),
-    second: line.substring(line.length / 2),
-  };
-  r.push(rs);
-
-  const sm = new Set(rs.second.split(""));
-
-  const shared = rs.first.split("").filter((x) => sm.has(x))[0];
-  if (shared.toLocaleLowerCase() === shared) {
-    x += 1 + shared[0].charCodeAt(0) - "a".charCodeAt(0);
+  if (i % 3 === 0) {
+    if (g > 0) {
+      x += p(Array.from(gs.values())[0]);
+    }
+    // new group
+    gs = new Set(line.split(""));
+    g++;
   } else {
-    x += 27 + (shared[0].charCodeAt(0) - "A".charCodeAt(0));
+    gs = new Set(line.split("").filter((x) => gs.has(x)));
   }
+  ++i;
 }
+x += p(Array.from(gs.values())[0]);
 
 console.log("Result:", x);
+
+function p(shared: string) {
+  if (shared.toLocaleLowerCase() === shared) {
+    return 1 + shared[0].charCodeAt(0) - "a".charCodeAt(0);
+  } else {
+    return 27 + (shared[0].charCodeAt(0) - "A".charCodeAt(0));
+  }
+}
