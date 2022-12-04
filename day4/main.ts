@@ -11,11 +11,17 @@ for (const line of lines) {
   const r2 = getRange(p2);
 
   if (
-    (r1[0] <= r2[0] && r2[1] <= r1[1]) ||
-    (r1[0] >= r2[0] && r2[1] >= r1[1])
+    inRange(r1[0], r2) ||
+    inRange(r1[1], r2) ||
+    inRange(r2[0], r1) ||
+    inRange(r2[1], r1)
   ) {
     dps++;
   }
+}
+
+function inRange(x: number, r: [start: number, end: number]): boolean {
+  return r[0] <= x && x <= r[1];
 }
 
 console.log("Result:", dps);
