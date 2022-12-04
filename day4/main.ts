@@ -20,11 +20,11 @@ for (const line of lines) {
   }
 }
 
+console.log("Result:", dps);
+
 function inRange(x: number, r: [start: number, end: number]): boolean {
   return r[0] <= x && x <= r[1];
 }
-
-console.log("Result:", dps);
 
 function getRange(x: string): [start: number, end: number] {
   const [s, e] = x.split("-");
