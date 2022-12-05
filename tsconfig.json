@@ -3,7 +3,8 @@
     "module": "ESNext",
     "target": "esnext",
     "moduleResolution": "node",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "sourceMap": true
   },
   "ts-node":{
     "esm": true,

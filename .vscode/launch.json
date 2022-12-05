@@ -4,11 +4,32 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Program",
+      "name": "Launch - Input",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["--loader", "ts-node/esm", "--experimental-specifier-resolution=node"],
+      "runtimeArgs": [
+        "--loader",
+        "ts-node/esm",
+        "--experimental-specifier-resolution=node"
+      ],
       "program": "${file}",
+      "args": ["input.txt"],
       "cwd": "${fileDirname}"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch - Example",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "--loader",
+        "ts-node/esm",
+        "--experimental-specifier-resolution=node"
+      ],
+      "program": "${file}",
+      "args": ["example.txt"],
+      "cwd": "${fileDirname}",
+      "prootcol": "inspector",
+      "sourceMaps": true
     }
   ]
 }
