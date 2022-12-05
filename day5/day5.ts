@@ -5,7 +5,7 @@ const { stacks, operations } = await readInput(process.argv[2]);
 // Apply operations
 for (const operation of operations) {
   const tmp = stacks[operation.from - 1].splice(0, operation.move);
-  stacks[operation.to - 1].unshift(...tmp); // Creates are moved one at a time
+  stacks[operation.to - 1].unshift(...tmp);
 }
 
 const result = stacks.map((s) => s[0]).join("");
