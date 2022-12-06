@@ -4,13 +4,10 @@ const [line] = await getLines(process.argv[2]);
 
 const chars = line.split("");
 
-let start = 0;
-for (let i = 0; i < chars.length; i++) {
-  if (i - start >= 4 && allDifferent(chars.slice(start, i))) {
-    console.log(i - 1);
+for (let i = 14; i < chars.length; i++) {
+  if (allDifferent(chars.slice(i - 14, i))) {
+    console.log(i);
     break;
-  } else if (i - start > 4) {
-    start = i - 4;
   }
 }
 
