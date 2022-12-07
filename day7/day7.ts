@@ -63,26 +63,13 @@ for (let i = 0; i < lines.length; i++) {
   }
 }
 
-let r: Entry[] = [];
-
 const s = [root];
 while (s.length > 0) {
   const n = s.pop();
 
   if (n.kind === "directory") {
-    if (n.size !== undefined) {
-      if (n.size < 100_000) {
-        r.push(n);
-        continue;
-      }
-    }
-
     if (n.entries?.every((x) => x.size !== undefined)) {
       n.size = dirSize(n);
-      if (n.size < 100_000) {
-        r.push(n);
-        continue;
-      }
     } else {
       s.push(n);
       s.push(...n.entries.filter((x) => x.kind === "directory"));
@@ -90,7 +77,27 @@ while (s.length > 0) {
   }
 }
 
-console.log(r.reduce((a, e) => a + e.size, 0));
+const required = 30000000 - (70000000 - root.size);
+
+{
+  let r: Entry[] = [];
+
+  const s = [root];
+  while (s.length > 0) {
+    const n = s.pop();
+
+    if (n.kind === "directory") {
+      if (n.size >= required) {
+        r.push(n);
+      }
+
+      s.push(...n.entries.filter((x) => x.kind === "directory"));
+    }
+  }
+
+  r.sort((a, b) => a.size - b.size);
+  console.log(r[0].size);
+}
 
 function dirSize(dir: Entry): number {
   return dir.entries.reduce(
