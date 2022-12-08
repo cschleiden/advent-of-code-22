@@ -14,59 +14,51 @@ for (const line of lines) {
 const lx = grid[0].length;
 const ly = grid.length;
 
-let visible = lx * 2 + (ly - 2) * 2;
+const scores: number[] = [];
 
-console.log("Edges: " + visible);
-
-// Iterate over inner trees
-for (let x = 1; x < lx - 1; x++) {
-  for (let y = 1; y < ly - 1; y++) {
-    if (hasSightline(grid, x, y)) {
-      visible++;
-    }
+for (let x = 0; x < lx; x++) {
+  for (let y = 0; y < ly; y++) {
+    scores.push(determineScore(grid, x, y));
   }
 }
 
-console.log(visible);
+scores.sort((a, b) => b - a);
 
-function hasSightline(grid: number[][], x: number, y: number): boolean {
+console.log(scores);
+
+function determineScore(grid: number[][], x: number, y: number): number {
+  // Up
+  let up = viewingDistance(grid, x, y, 0, -1);
+  // Down
+  let down = viewingDistance(grid, x, y, 0, 1);
+  // Left
+  let left = viewingDistance(grid, x, y, -1, 0);
+  // Right
+  let right = viewingDistance(grid, x, y, 1, 0);
+
+  return up * down * left * right;
+}
+
+function viewingDistance(
+  grid: number[][],
+  x: number,
+  y: number,
+  xdir: number,
+  ydir: number
+): number {
   const height = grid[x][y];
-
-  // Check left
-  let allShorter = true;
-  for (let i = x - 1; i >= 0 && allShorter; i--) {
-    allShorter = allShorter && grid[i][y] < height;
+  let distance = 0;
+  x += xdir;
+  y += ydir;
+  while (x >= 0 && x < lx && y >= 0 && y < ly) {
+    if (grid[x][y] < height) {
+      distance++;
+    } else {
+      distance++;
+      break;
+    }
+    x += xdir;
+    y += ydir;
   }
-  if (allShorter) {
-    return true;
-  }
-
-  // Check right
-  allShorter = true;
-  for (let i = x + 1; i < lx && allShorter; i++) {
-    allShorter = allShorter && grid[i][y] < height;
-  }
-  if (allShorter) {
-    return true;
-  }
-
-  // Check up
-  allShorter = true;
-  for (let i = y - 1; i >= 0 && allShorter; i--) {
-    allShorter = allShorter && grid[x][i] < height;
-  }
-  if (allShorter) {
-    return true;
-  }
-
-  // Check down
-  allShorter = true;
-  for (let i = y + 1; i < ly && allShorter; i++) {
-    allShorter = allShorter && grid[x][i] < height;
-  }
-  if (allShorter) {
-    return true;
-  }
-
-  return false;
+  return distance;
 }
