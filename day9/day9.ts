@@ -5,10 +5,13 @@ type Pos = [x: number, y: number];
 type Direction = "R" | "L" | "U" | "D";
 const visited = new Set<string>();
 
-let tail: Pos = [0, 0];
-let head: Pos = [0, 0];
+const numKnots = 10;
+let knots: Pos[] = [];
+for (let i = 0; i < numKnots; i++) {
+  knots.push([0, 0]);
+}
 
-visited.add(`${tail[0]}-${tail[1]}`);
+visited.add(`${knots[knots.length - 1][0]}-${knots[knots.length - 1][1]}`);
 
 for (const line of lines) {
   const [direction, stepsS] = line.split(" ");
@@ -17,12 +20,15 @@ for (const line of lines) {
   // console.log(direction, " ", steps);
 
   for (let i = 0; i < steps; i++) {
-    head = move(direction as Direction, head);
+    knots[0] = move(direction as Direction, knots[0]);
 
     // print(head, tail);
 
-    tail = updateTail(tail, head);
-    visited.add(`${tail[0]}-${tail[1]}`);
+    for (let j = 1; j < knots.length; j++) {
+      knots[j] = updateKnot(knots[j], knots[j - 1]);
+    }
+
+    visited.add(`${knots[knots.length - 1][0]}-${knots[knots.length - 1][1]}`);
 
     // print(head, tail);
     // console.log("=====");
@@ -69,7 +75,7 @@ function move(direction: Direction, pos: Pos): Pos {
   }
 }
 
-function updateTail(tail: Pos, head: Pos): Pos {
+function updateKnot(tail: Pos, head: Pos): Pos {
   const newTail = [...tail] as Pos;
 
   const xdiff = head[0] - tail[0];
