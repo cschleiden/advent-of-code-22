@@ -2,8 +2,6 @@ import { getLines } from "../lib/fs";
 
 const lines = await getLines(process.argv[2]);
 
-let worry = 0;
-
 type Monkey = {
   items: number[];
   operation: (x: number) => number;
@@ -52,7 +50,8 @@ while (m < lines.length) {
   m++;
 }
 
-const rounds = 20;
+const rounds = 10_000;
+const mod = monkeys.map((x) => x.divBy).reduce((a, b) => a * b);
 
 for (let r = 0; r < rounds; r++) {
   for (const m of monkeys) {
@@ -64,8 +63,7 @@ for (let r = 0; r < rounds; r++) {
     while (m.items.length > 0) {
       m.inspected++;
       const item = m.items.shift()!;
-      let newWorry = m.operation(item);
-      newWorry = Math.floor(newWorry / 3); // Get bored
+      let newWorry = m.operation(item) % mod;
       // Check where to send
       if (newWorry % m.divBy === 0) {
         monkeys[m.ifTrue].items.push(newWorry);
@@ -75,7 +73,7 @@ for (let r = 0; r < rounds; r++) {
     }
   }
 
-  console.log("Round done");
+  r % 1000 === 0 && console.log("Round done", r);
 }
 
 // Find two most active ones
