@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Check that the folder doesn't exist yet
+if [ -d day$1 ]; then
+    echo "Folder day$1 already exists"
+    exit 1
+fi
+
+# Create the folder
+mkdir day$1
+
+# Create the files
+touch day$1/day$1.ts
+touch day$1/input.txt
+touch day$1/example.txt
+
