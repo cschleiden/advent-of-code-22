@@ -5,7 +5,7 @@ const lines = await getLines(process.argv[2]);
 
 type Pos = [number, number];
 
-let start: Pos = [0, 0];
+let start: Pos[] = [];
 let target: Pos = [0, 0];
 
 const grid: number[][] = [];
@@ -18,12 +18,15 @@ for (const line of lines) {
   for (const c of line) {
     if (c === "S") {
       row.push(0);
-      start = [x, y];
     } else if (c === "E") {
       row.push("z".charCodeAt(0) - "a".charCodeAt(0));
       target = [x, y];
     } else {
       row.push(c.charCodeAt(0) - "a".charCodeAt(0));
+    }
+
+    if (row[row.length - 1] === 0) {
+      start.push([x, y]);
     }
 
     y++;
@@ -38,50 +41,65 @@ for (const line of lines) {
 const maxX = grid.length;
 const maxY = grid[0].length;
 
-const paths: Pos[][] = [];
+function shortestPath(start: Pos) {
+  const dist = new Map<string, number>();
+  const prev = new Map<string, Pos>();
 
-const dist = new Map<string, number>();
-const prev = new Map<string, Pos>();
+  for (let x = 0; x < maxX; x++) {
+    for (let y = 0; y < maxY; y++) {
+      const node: Pos = [x, y];
 
-for (let x = 0; x < maxX; x++) {
-  for (let y = 0; y < maxY; y++) {
-    const node: Pos = [x, y];
-
-    for (const pos of getReachablePositions(node)) {
-      dist.set(key(pos), Number.MAX_SAFE_INTEGER);
-      prev.set(key(pos), null);
+      for (const pos of getReachablePositions(node)) {
+        dist.set(key(pos), Number.MAX_SAFE_INTEGER);
+        prev.set(key(pos), null);
+      }
     }
   }
-}
 
-dist.set(key(start), 0);
+  dist.set(key(start), 0);
 
-const q: Pos[] = [start];
-while (q.length > 0) {
-  q.sort((a, b) => dist.get(key(a)) - dist.get(key(b)));
-  const u = q.shift();
-  if (key(u) === key(target)) {
-    break;
-  }
+  const q: Pos[] = [start];
+  while (q.length > 0) {
+    q.sort((a, b) => dist.get(key(a)) - dist.get(key(b)));
+    const u = q.shift();
+    if (key(u) === key(target)) {
+      break;
+    }
 
-  for (const v of getReachablePositions(u)) {
-    const alt = dist.get(key(u)) + 1;
-    if (alt < dist.get(key(v))) {
-      dist.set(key(v), alt);
-      prev.set(key(v), u);
-      q.push(v);
+    for (const v of getReachablePositions(u)) {
+      const alt = dist.get(key(u)) + 1;
+      if (alt < dist.get(key(v))) {
+        dist.set(key(v), alt);
+        prev.set(key(v), u);
+        q.push(v);
+      }
     }
   }
+
+  const s = [];
+  let u = target;
+  while (u !== null) {
+    s.push(u);
+    u = prev.get(key(u));
+  }
+
+  return s;
 }
 
-const s = [];
-let u = target;
-while (u !== null) {
-  s.push(u);
-  u = prev.get(key(u));
-}
+const pathLengths = [];
+console.log("Calculating shortest paths...", start.length);
 
-console.log("Shorted path length", s.length - 1);
+let i = 0;
+for (const s of start) {
+  i++ % 100 === 0 && console.log(".");
+
+  const path = shortestPath(s);
+  if (path.length > 1) {
+    pathLengths.push(path.length - 1);
+  }
+}
+pathLengths.sort((a, b) => a - b);
+console.log(pathLengths[0]);
 
 function key(p: Pos): string {
   return p.join(",");
