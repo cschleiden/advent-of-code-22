@@ -1,26 +1,36 @@
 import { getLines } from "../lib/fs";
 
 type List = (number | List)[];
-const pairs: [List, List][] = [];
+const packets: List[] = [];
 
 const lines = await getLines(process.argv[2]);
-for (let i = 0; i < lines.length; i += 3) {
-  const a = JSON.parse(lines[i]) as List;
-  const b = JSON.parse(lines[i + 1]) as List;
-  pairs.push([a, b]);
+for (let i = 0; i < lines.length; i++) {
+  const l = lines[i];
+  if (l === "") {
+    continue;
+  }
+  const a = JSON.parse(l) as List;
+  packets.push(a);
 }
 
-const indices = [];
-for (let i = 0; i < pairs.length; i++) {
-  if (compareLists(pairs[i][0], pairs[i][1])) {
-    indices.push(i + 1);
+// Add divider packets
+const da = [[2]];
+const db = [[6]];
+packets.push(da, db);
+
+packets.sort((a, b) => (compareLists(a, b) ? -1 : 1));
+
+let ia = 0;
+for (let i = 0; i < packets.length; i++) {
+  if (packets[i] === da) {
+    ia = i + 1;
+  }
+
+  if (packets[i] === db) {
+    console.log(ia * (i + 1));
+    break;
   }
 }
-
-console.log(
-  "Result",
-  indices.reduce((a, b) => a + b, 0)
-);
 
 function compareLists(a: List, b: List): boolean | null {
   let i = 0,
