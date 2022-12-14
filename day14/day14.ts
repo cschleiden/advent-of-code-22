@@ -47,6 +47,8 @@ for (const line of lines) {
   }
 }
 
+maxY += 2;
+
 // Fill in the sand
 let sandPlaced = 0;
 let moved = true;
@@ -56,21 +58,25 @@ while (moved) {
 
   // Try down
   while (true) {
-    if (!grid.get(key({ x: spos.x, y: spos.y + 1 }))) {
+    if (!grid.get(key({ x: spos.x, y: spos.y + 1 })) && spos.y + 1 < maxY) {
       spos = { x: spos.x, y: spos.y + 1 };
-    } else if (!grid.get(key({ x: spos.x - 1, y: spos.y + 1 }))) {
+    } else if (
+      !grid.get(key({ x: spos.x - 1, y: spos.y + 1 })) &&
+      spos.y + 1 < maxY
+    ) {
       spos = { x: spos.x - 1, y: spos.y + 1 };
-    } else if (!grid.get(key({ x: spos.x + 1, y: spos.y + 1 }))) {
+    } else if (
+      !grid.get(key({ x: spos.x + 1, y: spos.y + 1 })) &&
+      spos.y + 1 < maxY
+    ) {
       spos = { x: spos.x + 1, y: spos.y + 1 };
     } else {
       grid.set(key(spos), Tile.Sand);
       sandPlaced++;
-      break;
-    }
-
-    if (spos.y > maxY) {
-      // Sand fell into the abyss
-      moved = false;
+      if (spos.x == 500 && spos.y === 0) {
+        // Sand covered the source
+        moved = false;
+      }
       break;
     }
   }
