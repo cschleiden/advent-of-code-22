@@ -1,7 +1,5 @@
 import { getLines } from "../lib/fs";
 
-const lines = await getLines(process.argv[2]);
-
 type Valve = {
   name: string;
   flowRate: number;
@@ -9,8 +7,18 @@ type Valve = {
   open: boolean;
 };
 
+type Operation = {
+  action: "open" | "move";
+  valve: string;
+};
+
+//
+// Parse input
+//
 let vMap = new Map<string, Valve>();
 let start: Valve;
+
+const lines = await getLines(process.argv[2]);
 
 for (const line of lines) {
   const matches =
@@ -31,125 +39,96 @@ for (const line of lines) {
   vMap.set(v.name, v);
 }
 
-let c = new Map<
+const c = new Map<
   string,
   {
     flow: number;
-    path: Operation[];
+    openValves: string[];
   }
 >();
 
-const { path, additionalFlow } = traverse(start, [], 30);
-console.log("Max flow", additionalFlow, "Path length", path.length);
-for (const p of path) {
-  console.log(p.action, p.valve);
-}
-
-type Operation = {
-  action: "open" | "move";
-  valve: string;
-};
+const { flow, openValves } = traverse(start, [], 26);
+c.clear();
+const { flow: flow2, openValves: openValves2 } = traverse(
+  start,
+  openValves,
+  26
+);
+console.log("Max flow", flow + flow2);
 
 function traverse(
-  v: Valve,
+  valve: Valve,
   openValves: string[],
   minutes: number
 ): {
-  path: Operation[];
-  additionalFlow: number;
+  flow: number;
+  openValves: string[];
 } {
-  if (minutes <= 0) {
-    // Time is up, return the flow until this point
+  if (minutes === 0) {
     return {
-      path: [],
-      additionalFlow: 0,
+      flow: 0,
+      openValves,
     };
   }
 
-  // We have two options, open this valve and use up a minute or move on immediately
-  let shouldOpen = [false];
-  if (v.flowRate > 0 && !openValves.includes(v.name)) {
-    shouldOpen.unshift(true);
+  const ckey = `${valve.name}-${minutes}-${openValves.join("")}`;
+  const cache = c.get(ckey);
+  if (cache !== undefined) {
+    return {
+      flow: cache.flow,
+      openValves: cache.openValves,
+    };
   }
 
-  // Max flow for all the possible tunnels
-  let maxFlow = Number.MIN_SAFE_INTEGER;
-  let maxPath: Operation[] = [];
+  const options = getPossibleOptions(openValves, valve);
 
-  for (const open of shouldOpen) {
-    let m = minutes;
-    let p = [];
+  let maxFlow = Number.MIN_SAFE_INTEGER;
+  let maxOpenValves = openValves;
+
+  for (const option of options) {
     let f = 0;
+    let newValve = valve;
     let ov = openValves;
 
-    // Determine if we should open this valve or not
-    if (open) {
-      // Consume a minute for opening
-      m--;
-
-      // Mark valve as open
-      ov = [...ov, v.name];
-      p = [{ action: "open", valve: v.name }];
-
-      // Calculate how much flow this valve will produce in the remaining time
-      f += m * v.flowRate;
-      // console.log("f", f);
-
-      if (m === 0) {
-        return {
-          path: p,
-          additionalFlow: f,
-        };
-      }
+    if (option.action === "open") {
+      f += valve.flowRate * (minutes - 1);
+      ov = [...ov, valve.name];
+    } else {
+      // Move
+      newValve = vMap.get(option.valve);
     }
 
-    // Move to available connections
-    for (const tunnel of v.tunnels) {
-      const target = vMap.get(tunnel);
-
-      let newFlow: number;
-      let newPath: Operation[];
-
-      const ckey = `${target.name}-${m}-${ov.join("")}`;
-      if (c.has(ckey)) {
-        const { flow, path } = c.get(ckey)!;
-        newFlow = flow;
-        newPath = path;
-      } else {
-        ({ path: newPath, additionalFlow: newFlow } = traverse(
-          target,
-          ov,
-          m - 1
-        ));
-
-        c.set(ckey, {
-          flow: newFlow,
-          path: newPath,
-        });
-      }
-
-      if (f + newFlow > maxFlow) {
-        maxFlow = f + newFlow;
-        maxPath = [
-          ...p,
-          {
-            action: "move",
-            valve: target.name,
-          },
-          ...newPath,
-        ];
-      }
+    let { flow: newFlow, openValves: newOpenValves } = traverse(
+      newValve,
+      ov,
+      minutes - 1
+    );
+    if (f + newFlow > maxFlow) {
+      maxFlow = f + newFlow;
+      maxOpenValves = newOpenValves;
     }
   }
 
-  // console.log(
-  //   maxPath.map((p) => `${p.action[0]}${p.valve}`).join(""),
-  //   minutes,
-  //   maxFlow
-  // );
+  c.set(ckey, {
+    flow: maxFlow,
+    openValves: maxOpenValves,
+  });
 
   return {
-    path: maxPath,
-    additionalFlow: maxFlow,
+    flow: maxFlow,
+    openValves: maxOpenValves,
   };
+}
+
+function getPossibleOptions(openValves: string[], valve: Valve): Operation[] {
+  const options: Operation[] = [];
+  if (valve.flowRate > 0 && !openValves.includes(valve.name)) {
+    options.push({ action: "open", valve: valve.name });
+  }
+
+  for (const tunnel of valve.tunnels) {
+    options.push({ action: "move", valve: tunnel });
+  }
+
+  return options;
 }
