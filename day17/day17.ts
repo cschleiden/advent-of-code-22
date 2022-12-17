@@ -32,15 +32,84 @@ const b: Board = {
   blocked: new Map(),
 };
 
+const c = new Map<
+  string,
+  {
+    rockIdx: number;
+    jetIdx: number;
+    tallestRock: number;
+    r: number;
+  }
+>();
+
 let jetIdx = 0;
-for (let r = 0; r < 2022; r++) {
-  const rockToFall = rocks[r % rocks.length];
+const goal = 1_000_000_000_000;
+let tallestRockAdjust = -1;
+for (let r = 0; r < goal; r++) {
+  const rockIdx = r % rocks.length;
+  const rockToFall = rocks[rockIdx];
 
   let x = 2;
   let y = b.tallestRock + rockToFall.length + 3;
 
   // draw(b, rockToFall, x, y);
 
+  ({ x, y, jetIdx } = placeRock(x, y, rockToFall, jetIdx));
+
+  b.tallestRock = Math.max(y, b.tallestRock);
+
+  // Calculate fingerprint
+  const fp = calcFingerPrint();
+
+  // Cache
+  if (fp != null && tallestRockAdjust <= 0) {
+    const ckey = `${rockIdx}-${jetIdx % jets.length}-${fp.join(",")}`;
+    if (c.has(ckey)) {
+      const cached = c.get(ckey);
+
+      const remaining = goal - r;
+      const deltaR = r - cached.r;
+      const iterationsToSkip = Math.floor(remaining / deltaR);
+      const toSkip = iterationsToSkip * deltaR;
+      r += toSkip;
+
+      const deltaRock = b.tallestRock - cached.tallestRock;
+      tallestRockAdjust = iterationsToSkip * deltaRock;
+
+      console.log("Skipping", "from", r, "plus", toSkip, deltaRock);
+    } else {
+      c.set(ckey, {
+        rockIdx,
+        jetIdx,
+        tallestRock: b.tallestRock,
+        r,
+      });
+    }
+  }
+}
+
+console.log(b.tallestRock + 1 + tallestRockAdjust);
+
+function calcFingerPrint() {
+  const fp = [];
+  for (let x = 0; x < b.width; x++) {
+    let top = -1;
+    for (let y = b.tallestRock; y >= 0; y--) {
+      if (b.blocked.get(`${x},${y}`)) {
+        top = b.tallestRock - y;
+        break;
+      }
+    }
+    if (top === -1) {
+      return null;
+    }
+
+    fp.push(top);
+  }
+  return fp;
+}
+
+function placeRock(x: number, y: number, rockToFall: Rock, jetIdx: number) {
   let s = 0;
   while (true) {
     let dx = 0;
@@ -78,7 +147,6 @@ for (let r = 0; r < 2022; r++) {
   }
 
   // Commit block to board
-  b.tallestRock = Math.max(y, b.tallestRock);
   for (let i = 0; i < rockToFall.length; i++) {
     for (let j = 0; j < rockToFall[i].length; j++) {
       if (rockToFall[i][j] === "#") {
@@ -86,9 +154,8 @@ for (let r = 0; r < 2022; r++) {
       }
     }
   }
+  return { x, y, jetIdx };
 }
-
-console.log(b.tallestRock + 1);
 
 function draw(b: Board, r?: Rock, rx?: number, ry?: number) {
   let sy = b.tallestRock + 3;
