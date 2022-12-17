@@ -48,27 +48,32 @@ const c = new Map<
 >();
 
 const { flow, openValves } = traverse(start, [], 26);
-c.clear();
-const { flow: flow2, openValves: openValves2 } = traverse(
-  start,
-  openValves,
-  26
-);
-console.log("Max flow", flow + flow2);
+// c.clear();
+// const { flow: flow2, openValves: openValves2 } = traverse(
+//   start,
+//   openValves,
+//   26
+// );
+console.log("Max flow", flow);
 
 function traverse(
   valve: Valve,
   openValves: string[],
-  minutes: number
+  minutes: number,
+  cont: boolean = true
 ): {
   flow: number;
   openValves: string[];
 } {
   if (minutes === 0) {
-    return {
-      flow: 0,
-      openValves,
-    };
+    if (cont) {
+      return traverse(start, openValves, 26, false);
+    } else {
+      return {
+        flow: 0,
+        openValves,
+      };
+    }
   }
 
   const ckey = `${valve.name}-${minutes}-${openValves.join("")}`;
@@ -101,7 +106,8 @@ function traverse(
     let { flow: newFlow, openValves: newOpenValves } = traverse(
       newValve,
       ov,
-      minutes - 1
+      minutes - 1,
+      cont
     );
     if (f + newFlow > maxFlow) {
       maxFlow = f + newFlow;
